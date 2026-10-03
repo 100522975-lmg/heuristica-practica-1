@@ -9,6 +9,6 @@ else:
     print(f"Not enough arguments (Expected input-file and output-file)")
 
 if os.path.exists(external_bin):
-    os.system(f"./{external_bin} {input_file} {output_file}")
+    os.system(f"./{external_bin} {input_file} data/{output_file}")
 else:
     print(f"No file named {external_bin} in {os.getcwd()}")
