@@ -1,5 +1,8 @@
 use std::env;
 use std::fs;
+use std::fs::File;
+use std::io;
+use std::io::Write;
 
 struct Pallet {
     side_length: i32,
@@ -24,11 +27,24 @@ fn parse_input(path: &str) -> Pallet {
     };
 }
 
-fn main() { 
+fn generate_dat(path: &str, pallet: &Pallet) -> io::Result<()> {
+    let mut buff = io::BufWriter::new(File::create(path)?); 
+    writeln!(buff, "data;")?;
+    writeln!(buff, "param L := {}", pallet.side_length)?;
+
+    writeln!(buff, "param priority :=")?;
+    for (i, p) in pallet.priorities.iter().enumerate() {
+        write!(buff, " {} {}", i, p)?;
+    }
+    writeln!(buff, ";")?;
+    write!(buff, "end;")?;
+    buff.flush()
+}
+
+fn main() -> io::Result<()> { 
     let args: Vec<String> = env::args().collect();
     let pallet = parse_input(&args[1]);
-
-    println!("{}", pallet.side_length);
-    println!("{:?}", pallet.priorities);
-
+   
+    generate_dat("data/model-1.dat", &pallet).unwrap();
+    Ok(())
 }
