@@ -15,7 +15,7 @@ fn parse_input(path: &str) -> Pallet {
         .split('\n')
         .map(String::from)
         .collect::<Vec<String>>();
-
+    
     return Pallet {
         side_length: contents[0]
             .parse::<i32>()
@@ -29,18 +29,19 @@ fn parse_input(path: &str) -> Pallet {
 
 fn generate_dat(path: &str, pallet: &Pallet) -> io::Result<()> {
     let mut buff = io::BufWriter::new(File::create(path)?); 
+    let mut tail: Vec<u8> = Vec::new();
+
     writeln!(buff, "data;")?;
     writeln!(buff, "param L := {}", pallet.side_length)?;
-    
+     
     writeln!(buff, "set BOXES :=")?;
-    for (i, _) in pallet.priorities.iter().enumerate() {
-        write!(buff, " box{}", i+1)?; 
-    }
-    
-    writeln!(buff, "\nparam priority :=")?;
     for (i, p) in pallet.priorities.iter().enumerate() {
-        write!(buff, " box{} {}", i+1, p)?;
+        write!(buff, " box{}", i+1)?; 
+        writeln!(tail, "  box{} {}", i+1, p)?;
     }
+    writeln!(buff, "\nparam priority :=")?;
+    buff.write_all(&tail)?; // append tail buffer to main buffer
+
     writeln!(buff, ";")?;
     write!(buff, "end;\n")?;
     buff.flush()
