@@ -1,7 +1,7 @@
-all: data app
+all: data part-1
 
 data:
 	mkdir -p data
 
-app: src/main.rs
-	rustc src/main.rs -o main
+part-1: src/main.rs
+	rustc src/main.rs -o main-1

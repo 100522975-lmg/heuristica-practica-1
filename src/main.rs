@@ -1,45 +1,26 @@
+mod pallet;
+
+use pallet::Pallet;
+
 use std::env;
-use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::Write;
-
-struct Pallet {
-    side_length: i32,
-    priorities: Vec<i32>,
-}
-
-fn parse_input(path: &str) -> Pallet {
-    let contents = fs::read_to_string(path)
-        .expect("Could not read the file.")
-        .split('\n')
-        .map(String::from)
-        .collect::<Vec<String>>();
-    
-    return Pallet {
-        side_length: contents[0]
-            .parse::<i32>()
-            .unwrap(),
-        priorities: contents[1]
-            .split(' ')
-            .map(|x| x.parse::<i32>().unwrap())
-            .collect(),
-    };
-}
+use std::error::Error;
 
 fn generate_dat(path: &str, pallet: &Pallet) -> io::Result<()> {
     let mut buff = io::BufWriter::new(File::create(path)?); 
     let mut tail: Vec<u8> = Vec::new();
 
     writeln!(buff, "data;")?;
-    writeln!(buff, "param L := {}", pallet.side_length)?;
+    writeln!(buff, "param L := {};", pallet.side_length)?;
      
     writeln!(buff, "set BOXES :=")?;
     for (i, p) in pallet.priorities.iter().enumerate() {
         write!(buff, " box{}", i+1)?; 
         writeln!(tail, "  box{} {}", i+1, p)?;
     }
-    writeln!(buff, "\nparam priority :=")?;
+    writeln!(buff, ";\nparam priority :=")?;
     buff.write_all(&tail)?; // append tail buffer to main buffer
 
     writeln!(buff, ";")?;
@@ -47,9 +28,9 @@ fn generate_dat(path: &str, pallet: &Pallet) -> io::Result<()> {
     buff.flush()
 }
 
-fn main() -> io::Result<()> { 
+fn main() -> Result<(), Box<dyn Error>> { 
     let args: Vec<String> = env::args().collect();
-    let pallet = parse_input(&args[1]);
+    let pallet = Pallet::from_input(&args[1])?;
    
     generate_dat(&args[2], &pallet)?;
     Ok(())
