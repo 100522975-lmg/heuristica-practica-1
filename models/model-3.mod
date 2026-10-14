@@ -1,5 +1,6 @@
 #model 3
 
+param M >0 ; #Big M parameter 
 #define pallet params
 param L > 0, integer;
 param H > 0, integer;
@@ -13,9 +14,13 @@ param priority {p in BOXES};
 param weight   {w in BOXES};
 param capacity {c in BOXES};
 
-var x {i in PALLET, j in PALLET, h in FLOORS, k in BOXES}, binary; #1 if box k is located in position [i,j] of floor h
+#Variables
 
-minimize Cost : sum{i in 2..L, j in PALLET, h in FLOORS, k in BOXES, r in i..L} priority[k]*x[r,j,h,k];
+var x {i in PALLET, j in PALLET, h in FLOORS, k in BOXES}, binary; #1 if box k is located in position [i,j] of floor h
+#Cost variable, If there is a box in position [i,j,h] it takes the value of the added cost by that box, 0 otherwise
+var c {i in 2..L, j in PALLET, h in FLOORS}
+
+minimize Cost : sum{i in 2..L, j in PALLET, h in FLOORS} c[i,j,h];
 
 #define constraints
 
@@ -26,6 +31,10 @@ sum{i in PALLET, j in PALLET, h in FLOORS} x[i,j,h,k] == 1;
 #Each position can have at most one box since it may be empty spaces, empty box is represented with special index
 s.t. PosConstraint {i in PALLET, j in PALLET, h in FLOORS} : 
 sum{k in BOXES} x[i,j,h,k] == 1;
+
+#Big-M constraint that conditions the cost of a postion if there is a box in there
+s.t CostConstraint {i in 2..L, j in PALLET, h in FLOORS, k in REALBOXES} :
+c[i,j,h] >= priority[k] * (sum{r in 1..(i-1), l in REALBOXES} x[r,j,h,l] ) - M*(1-x[i,j,h,k]); 
 
 #Priority of a box in a row should be greater in value than the one in the next row
 s.t. PrioConstraint {i in 1..(L-1), j in PALLET, h in FLOORS} : 
