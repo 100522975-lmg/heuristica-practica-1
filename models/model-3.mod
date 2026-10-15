@@ -4,6 +4,7 @@ param M >0 ; #Big M parameter
 #define pallet params
 param L > 0, integer;
 param H > 0, integer;
+param n > 0, integer; #Number of boxes
 
 set REALBOXES;
 set BOXES := REALBOXES union {"EmptyBox"} ;
@@ -20,7 +21,7 @@ var x {i in PALLET, j in PALLET, h in FLOORS, k in BOXES}, binary; #1 if box k i
 #Cost variable, If there is a box in position [i,j,h] it takes the value of the added cost by that box, 0 otherwise
 var c {i in 2..L, j in PALLET, h in FLOORS}
 
-minimize Cost : sum{i in 2..L, j in PALLET, h in FLOORS} c[i,j,h];
+minimize Cost : (1/n) * sum{i in 2..L, j in PALLET, h in FLOORS} c[i,j,h];
 
 #define constraints
 
@@ -28,11 +29,15 @@ minimize Cost : sum{i in 2..L, j in PALLET, h in FLOORS} c[i,j,h];
 s.t. BoxConstraint {k in REALBOXES} : 
 sum{i in PALLET, j in PALLET, h in FLOORS} x[i,j,h,k] == 1;
 
+#The total number of empty boxes is h*l*l - n (number of positions - number of boxes) 
+s.t EmptyBoxConstraint:
+sum{i in PALLET, j in PALLET, h in FLOORS} x[i,j,h,"EmptyBox"] == h*l*l - n; 
+
 #Each position can have at most one box since it may be empty spaces, empty box is represented with special index
 s.t. PosConstraint {i in PALLET, j in PALLET, h in FLOORS} : 
 sum{k in BOXES} x[i,j,h,k] == 1;
 
-#Big-M constraint that conditions the cost of a postion if there is a box in there
+#Big-M constraint that constraints the cost of a position if there is a box in there
 s.t CostConstraint {i in 2..L, j in PALLET, h in FLOORS, k in REALBOXES} :
 c[i,j,h] >= priority[k] * (sum{r in 1..(i-1), l in REALBOXES} x[r,j,h,l] ) - M*(1-x[i,j,h,k]); 
 
