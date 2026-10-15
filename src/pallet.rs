@@ -4,6 +4,7 @@ use std::error::Error;
 pub struct Pallet {
     pub side_length: i32,
     pub priorities: Vec<i32>,
+    pub height: Option<i32>,
     pub cost: Option<i32>,
     pub weights: Option<Vec<i32>>,
     pub capacities: Option<Vec<i32>>,
@@ -24,6 +25,7 @@ impl Pallet {
             2 => Ok(Pallet {
                     side_length: contents[0][0],
                     priorities: contents[1].clone(),
+                    height: None,
                     cost: None,
                     weights: None,
                     capacities: None,
@@ -31,6 +33,10 @@ impl Pallet {
             4 => Ok(Pallet {
                     side_length: contents[0][0],
                     priorities: contents[1].clone(),
+                    height: match contents[0].len() {
+                        2 => Some(contents[0][1]),
+                        _ => None,
+                    },
                     cost: match contents[0].len() {
                         3 => Some(contents[0][2]),
                         _ => None,

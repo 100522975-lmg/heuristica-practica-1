@@ -1,7 +1,5 @@
-all: data part-1
+main: src/main.rs
+	rustc src/main.rs -o main
 
-data:
-	mkdir -p data
-
-part-1: src/main.rs
-	rustc src/main.rs -o main-1
+clean:
+	rm main
