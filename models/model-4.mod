@@ -18,20 +18,24 @@ minimize Cost:
 #box in row i is counted i-1 times for cost (once for  each box below)   
 
 #Each box should be placed only once
-s.t. BoxConstraint {k in BOXES} :
-sum{i in LENGTH, j in LENGTH} x[i,j,k] == 1;
+s.t. BoxConstraint {k in BOXES}:
+sum{i in LENGTH, j in LENGTH, p in PALLETS} x[i,j,k,p] == 1;
 
 #Each position must contain only one box
-s.t. PosConstraint {i in LENGTH, j in LENGTH}:
-sum{k in BOXES} x[i,j,k] == 1;
+s.t. PosConstraint {i in LENGTH, j in LENGTH, p in PALLET}:
+sum{k in BOXES} x[i,j,k,p] == 1;
 
 # Num. pallets must be at most 1 per box
 # s.t PalletConstraint {p in PALLETS} :
 # sum pallet[p] <= L*L;
 
 #The priority of a box one row behind should be bigger in value than the one in front
-s.t. PrioConstraint {i in 1..(L-1), j in LENGTH}:
-sum{k in BOXES} priority[k]*x[i,j,k] >= sum{k in BOXES} priority[k]*x[i+1,j,k];
+s.t. PrioConstraint {i in 1..(L-1), j in LENGTH, p in PALLET}:
+sum{k in BOXES} priority[k]*x[i,j,k,p] >= sum{k in BOXES} priority[k]*x[i+1,j,k,p];
+
+# Unused pallets have no boxes
+s.t PalletConstraint {p in PALLETS}:
+sum{i in LENGTH, j in LENGTH, k in BOXES} x[i,j,k,p] <= H*L*L*pallet[p];
 
 solve; 
 end;
