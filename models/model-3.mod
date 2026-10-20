@@ -30,7 +30,7 @@ s.t. BoxConstraint {k in BOXES} :
 sum{i in LENGTH, j in LENGTH, h in FLOORS} x[i,j,h,k] == 1;
 
 #The total number of empty boxes is h*l*l - n (number of positions - number of boxes) 
-s.t EmptyBoxConstraint:
+s.t. EmptyBoxConstraint :
 sum{i in LENGTH, j in LENGTH, h in FLOORS} x[i,j,h,"EmptyBox"] == H*L*L - n; 
 
 #Each position can have at most one box since it may be empty spaces, empty box is represented with special index
@@ -38,7 +38,7 @@ s.t. PosConstraint {i in LENGTH, j in LENGTH, h in FLOORS} :
 sum{k in AUGBOXES} x[i,j,h,k] == 1;
 
 #Big-M constraint that constraints the cost of a position if there is a box in there
-s.t CostConstraint {i in 2..L, j in LENGTH, h in FLOORS, k in BOXES} :
+s.t. CostConstraint {i in 2..L, j in LENGTH, h in FLOORS, k in BOXES} :
 c[i,j,h] >= priority[k] * (sum{r in 1..(i-1), l in BOXES} x[r,j,h,l] ) - M*(1-x[i,j,h,k]); 
 
 #Priority of a box in a row should be greater in value than the one in the next row
