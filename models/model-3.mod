@@ -19,7 +19,7 @@ param capacity {c in BOXES};
 
 var x {i in PALLET, j in PALLET, h in FLOORS, k in BOXES}, binary; #1 if box k is located in position [i,j] of floor h
 #Cost variable, If there is a box in position [i,j,h] it takes the value of the added cost by that box, 0 otherwise
-var c {i in 2..L, j in PALLET, h in FLOORS}
+var c {i in 2..L, j in PALLET, h in FLOORS} >= 0;
 
 minimize Cost : (1/n) * sum{i in 2..L, j in PALLET, h in FLOORS} c[i,j,h];
 
@@ -31,7 +31,7 @@ sum{i in PALLET, j in PALLET, h in FLOORS} x[i,j,h,k] == 1;
 
 #The total number of empty boxes is h*l*l - n (number of positions - number of boxes) 
 s.t EmptyBoxConstraint:
-sum{i in PALLET, j in PALLET, h in FLOORS} x[i,j,h,"EmptyBox"] == h*l*l - n; 
+sum{i in PALLET, j in PALLET, h in FLOORS} x[i,j,h,"EmptyBox"] == H*L*L - n; 
 
 #Each position can have at most one box since it may be empty spaces, empty box is represented with special index
 s.t. PosConstraint {i in PALLET, j in PALLET, h in FLOORS} : 
@@ -43,7 +43,7 @@ c[i,j,h] >= priority[k] * (sum{r in 1..(i-1), l in REALBOXES} x[r,j,h,l] ) - M*(
 
 #Priority of a box in a row should be greater in value than the one in the next row
 s.t. PrioConstraint {i in 1..(L-1), j in PALLET, h in FLOORS} : 
-sum{k in BOXES} priority[k]*x[i,j,h,k] >= sum{k in BOXES} priority[k]*x[i+1,j,h,k]; 
+sum{k in REALBOXES} priority[k]*x[i,j,h,k] + M*x[i,j,h,"EmptyBox"] >= sum{k in REALBOXES} priority[k]*x[i+1,j,h,k] + M*x[i+1,j,h,"EmptyBox"]; 
 
 #The weight of the boxes above one should be less than its capacity
 s.t. CargoConstraint {i in PALLET, j in PALLET, h in 1..(H-1)} : 
