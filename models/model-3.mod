@@ -19,9 +19,9 @@ param capacity {c in AUGBOXES}, default M;
 
 var x {i in LENGTH, j in LENGTH, h in FLOORS, k in AUGBOXES}, binary; #1 if box k is located in position [i,j] of floor h
 #Cost variable, If there is a box in position [i,j,h] it takes the value of the added cost by that box, 0 otherwise
-var c {i in 2..L, j in LENGTH, h in FLOORS} >= 0;
+var c {i in 1..(L-1), j in LENGTH, h in FLOORS} >= 0;
 
-minimize Cost : (1/n) * sum{i in 2..L, j in LENGTH, h in FLOORS} c[i,j,h];
+minimize Cost : (1/n) * sum{i in 1..(L-1), j in LENGTH, h in FLOORS} c[i,j,h];
 
 #define constraints
 
@@ -38,8 +38,8 @@ s.t. PosConstraint {i in LENGTH, j in LENGTH, h in FLOORS} :
 sum{k in AUGBOXES} x[i,j,h,k] == 1;
 
 #Big-M constraint that constraints the cost of a position if there is a box in there
-s.t. CostConstraint {i in 2..L, j in LENGTH, h in FLOORS} :
-c[i,j,h] >= sum{r in i..L,k in BOXES}priority[k]*x[r,j,h,k] - M*x[i,j,h,"EmptyBox"]; 
+s.t. CostConstraint {i in 1..(L-1), j in LENGTH, h in FLOORS} :
+c[i,j,h] >= sum{r in (i+1)..L,k in BOXES}priority[k]*x[r,j,h,k] - M*x[i,j,h,"EmptyBox"]; 
 
 #Priority of a box in a row should be greater in value than the one in the next row
 s.t. PrioConstraint {i in 1..(L-1), j in LENGTH, h in FLOORS} : 
