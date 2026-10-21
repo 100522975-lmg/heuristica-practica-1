@@ -1,5 +1,6 @@
 mod pallet;
 mod writer;
+mod output;
 
 use pallet::PalletConfig;
 
@@ -14,13 +15,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     writer::write_config(&args[2], &pallet)?;
 
-    Command::new("glpsol")
+    let out = Command::new("glpsol")
         .arg("--model")
         .arg(format!("models/model-{}.mod", &args[3]))
         .arg("--data")
         .arg(&args[2])
         .arg("--output")
-        .arg("glpsol.out")
-        .status()?;
-    Ok(())
+        .arg("/dev/stderr")
+        .output()?;
+
+    output::format_header(&String::from_utf8_lossy(&out.stderr))
 }
