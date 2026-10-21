@@ -1,8 +1,10 @@
 mod pallet;
 mod writer;
 mod output;
+mod drawer;
 
 use pallet::PalletConfig;
+use drawer::Drawer;
 
 use std::env;
 use std::error::Error;
@@ -23,6 +25,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         .arg("--output")
         .arg("/dev/stderr")
         .output()?;
+    
+    let stderr = String::from_utf8_lossy(&out.stderr));
 
-    output::format_header(&String::from_utf8_lossy(&out.stderr))
+    output::format_header(&stderr);
+
+    let mut drawer = Drawer::new(&pallet , pallet.p.len());
+    drawer.parse(&stderr);
 }
