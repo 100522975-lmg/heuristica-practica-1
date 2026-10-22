@@ -43,7 +43,7 @@ c[i,j,h,p] >= sum{r in (i+1)..L,k in BOXES}priority[k]*x[r,j,h,p,k] - M*x[i,j,h,
 
 #Priority of a box in a row should be greater in value than the one in the next row
 s.t. PrioConstraint {i in 1..(L-1), j in LENGTH, h in FLOORS, p in PALLETS} : 
-sum{k in BOXES} priority[k]*x[i,j,h,p,k] + M*x[i,j,h,p,"EmptyBox"] >= sum{k in BOXES} priority[k]*x[i+1,j,h,p,k]; 
+sum{k in BOXES} priority[k]*x[i,j,h,p,k] + M*x[i,j,h,p,"EmptyBox"] >= sum{k in BOXES} priority[k]*x[i+1,j,h,p,k] + M*x[i+1,j,h,p,"EmptyBox"]; 
 
 #The weight of the boxes above one should be less than its capacity
 s.t. CargoConstraint {i in LENGTH, j in LENGTH, h in 1..(H-1), p in PALLETS} : 
