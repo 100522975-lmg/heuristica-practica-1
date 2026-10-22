@@ -1,5 +1,7 @@
 use crate::pallet::{PalletConfig, PalletModel};
 use std::error::Error;
+use std::fs::File;
+use std::io::{self, BufWriter, Write};
 
 pub struct Drawer {
     model: u8,
@@ -11,6 +13,7 @@ pub struct Drawer {
     /// Dimensions that don't exist for a model collapse to size 1:
     ///   model 1 -> 1 pallet, 1 level; models 2/3 -> 1 pallet; model 4 -> full 4D.
     grid: Vec<Vec<Vec<Vec<i32>>>>,
+    width: usize, //chars per cell covering the longest priority
 }
 
 /// Converts a 1-based GLPK index into a 0-based Rust index.
@@ -31,6 +34,8 @@ impl Drawer {
         };
         let length = config.l as usize;
         let pallets = if model == 4 { pallets.max(1) } else { 1 };
+        //Compute max length of the possible chars for each priority
+        let width = config.p.iter().map(|p| p.to_string().len()).max().unwrap_or(1);
 
         Drawer {
             model,
@@ -39,6 +44,7 @@ impl Drawer {
             boxes: config.p.len(),
             priorities: config.p.clone(),
             grid: vec![vec![vec![vec![0; length]; length]; height]; pallets],
+            width,
         }
     }
 
@@ -123,5 +129,59 @@ impl Drawer {
 
         *cell = prio;
         Ok(1)
+ 
     }
+    /// Draws the pallet(s) to path. Use "-" for stdout; any other path is
+    /// created if it doesn't exist (and overwritten if it does).
+    pub fn draw(&self, path: &str) -> io::Result<()> {
+        let mut out: Box<dyn Write> = if path == "-" {
+            Box::new(io::stdout().lock())
+        } else {
+            Box::new(BufWriter::new(File::create(path)?))
+        };
+
+        self.render(&mut out)?;
+        out.flush()
+    }
+
+    fn render<W: Write>(&self, out: &mut W) -> io::Result<()> {
+        //width between boxes assures the maximum length of the priorities string is covered 
+        let width = self.width;
+        let sep = format!("+{}", format!("{}+", "-".repeat(width + 2)).repeat(self.length));
+        let sep_access = format!("+{}{}", format!("{} ", "-".repeat(width + 2)).repeat(self.length-1),format!("{}+","-".repeat(width+2)));
+        for (p, pallet) in self.grid.iter().enumerate() {
+            // skip unused pallets (model 4 upper bound)
+            // pallet is the 3D vector for each pallet created in mod 4
+            if pallet.iter().flatten().flatten().all(|&c| c == 0) {
+                continue;
+            }
+            if self.model == 4 {
+                writeln!(out, "=== Pallet {} ===", p + 1)?;
+            }
+            // top level first, level 1 is the bottom
+            // level is the 2D vector corresponding to each height in mod 2 and 3
+            for (h, level) in pallet.iter().enumerate(){
+                if self.height > 1 {
+                    writeln!(out, "Level {}", h + 1)?;
+                }
+                writeln!(out, "{sep_access} <= Access Point")?;
+                for row in level.iter().rev() { //Iterate rows in reverse order
+                    //row is the 1D vector corresponding to each pallet row
+                    let cells: String = row
+                        .iter()
+                        .map(|&c| {
+                            let s = if c == 0 { ".".to_string() } else { c.to_string() }; 
+                            format!(" {:>w$} |", s, w = width)
+                        })
+                        .collect();
+                    //Printed "." if theres an empty box, priority if it  exists
+                    writeln!(out, "|{cells}")?;
+                    writeln!(out, "{sep}")?;
+                }
+                writeln!(out)?;
+            }
+        }
+        Ok(())
+    }
+    
 }

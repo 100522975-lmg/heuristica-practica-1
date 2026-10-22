@@ -26,10 +26,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         .arg("/dev/stderr")
         .output()?;
     
-    let stderr = String::from_utf8_lossy(&out.stderr));
+    let stderr = String::from_utf8_lossy(&out.stderr);
 
-    output::format_header(&stderr);
+    output::format_header(&stderr)?;
 
     let mut drawer = Drawer::new(&pallet , pallet.p.len());
-    drawer.parse(&stderr);
+    drawer.parse(&stderr)?;
+    //Draw the pallet structure
+    drawer.draw("-")?; 
+
+    Ok(())
 }
