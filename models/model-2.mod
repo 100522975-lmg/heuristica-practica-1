@@ -14,7 +14,7 @@ param capacity {c in BOXES}; #Box k has capacity c[k]
 
 var x{i in LENGTH,j in LENGTH,h in FLOORS, k in BOXES}, binary; #True if box k is located in position [i,j] and floor h 
 
-minimize Cost : sum{i in 2..L, j in LENGTH, h in FLOORS, k in BOXES} (i-1)*priority[k]*x[i,j,h,k];
+minimize Cost :(1/(H*L*L)) sum{i in 2..L, j in LENGTH, h in FLOORS, k in BOXES} (i-1)*priority[k]*x[i,j,h,k];
 
 #Same as in model 1 but iterating over all floors (reasoning is the same) 
 
